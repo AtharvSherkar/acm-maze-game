@@ -1,0 +1,19 @@
+{
+  "name": "acm-maze-game",
+  "version": "1.0.0",
+  "description": "Kahoot-style real-time multiplayer ACM Spell Maze game with QR code lobbies, 300-player support, and live podium.",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "keywords": [
+    "kahoot",
+    "maze-game",
+    "multiplayer",
+    "qr-code",
+    "acm",
+    "html5-game"
+  ],
+  "author": "",
+  "license": "MIT"
+}
