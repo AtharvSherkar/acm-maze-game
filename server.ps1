@@ -119,6 +119,20 @@ while ($true) {
                 }
             }
 
+            # Handle reset via query: /api/room?action=reset&roomId=...
+            if ($queryStr -match "action=reset") {
+                $room.status = "LOBBY"
+                $room.startTime = $null
+                $room.countdownStart = $null
+                foreach ($p in $room.players.Values) {
+                    $p.finished = $false
+                    $p.finishTimeSeconds = $null
+                    $p.finishTimeFormatted = $null
+                    $p.collectedLetters = @()
+                }
+                $room.lastUpdated = $nowMs
+            }
+
             # Update heartbeat if playerId was sent in query
             if ($queryStr -match "playerId=([^&]+)") {
                 $activePid = $matches[1]

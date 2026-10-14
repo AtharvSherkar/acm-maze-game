@@ -113,6 +113,22 @@ module.exports = async function handler(req, res) {
         }
     }
 
+    // Support GET action=reset (e.g. when host opens dashboard or resets room)
+    if (req.query && req.query.action === "reset") {
+        room.status = "LOBBY";
+        room.startTime = null;
+        room.countdownStart = null;
+        if (room.players) {
+            Object.values(room.players).forEach(p => {
+                p.finished = false;
+                p.finishTimeSeconds = null;
+                p.finishTimeFormatted = null;
+                p.collectedLetters = [];
+            });
+        }
+        await saveRoomState(roomId, room);
+    }
+
     // Touch heartbeat if playerId is provided in query
     if (req.query && req.query.playerId && room.players && room.players[req.query.playerId]) {
         room.players[req.query.playerId].lastSeen = now;

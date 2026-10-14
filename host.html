@@ -561,6 +561,9 @@
                 <h1 class="projector-title">ACM MAZE SHOWDOWN</h1>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-action" onclick="hostReturnToDashboard()" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7;">
+                    🏠 Dashboard
+                </button>
                 <button class="btn-action" onclick="toggleFullscreen()">⛶ Fullscreen</button>
                 <button class="btn-action" onclick="testPlayerTab()" style="background: rgba(56, 189, 248, 0.25); border-color: #38bdf8;">
                     👤 Open Player Tab
@@ -775,9 +778,12 @@
                     </tbody>
                 </table>
 
-                <div style="margin-top: 30px; text-align: center;">
+                <div style="margin-top: 30px; text-align: center; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
                     <button class="btn-launch" onclick="hostPlayAnotherRound()" style="padding: 12px 36px; font-size: 1.1rem;">
                         🔄 Play Another Round / Next Maze
+                    </button>
+                    <button class="btn-action" onclick="hostReturnToDashboard()" style="padding: 12px 28px; font-size: 1.05rem; background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; color: #bae6fd;">
+                        🏠 Back to Host Dashboard
                     </button>
                 </div>
             </div>
@@ -921,6 +927,9 @@
             }, 5000);
         }
 
+        // Session state tracking: prevents showing old ended game leaderboard when host opens the dashboard fresh
+        let hasActiveGameSession = false;
+
         // Listen for Real-Time Updates
         sync.onUpdate((state) => {
             const currentPlayers = state.players || {};
@@ -941,6 +950,7 @@
             hostPreviousPlayers = { ...currentPlayers };
 
             if (state.status === "LOBBY") {
+                hasActiveGameSession = false;
                 if (hostAutoEndTimeout) {
                     clearTimeout(hostAutoEndTimeout);
                     hostAutoEndTimeout = null;
@@ -963,12 +973,14 @@
                 showPhase("hostLobbyPhase");
                 renderLobbyPlayers(players);
             } else if (state.status === "COUNTDOWN") {
+                hasActiveGameSession = true;
                 if (hostAutoEndTimeout) {
                     clearTimeout(hostAutoEndTimeout);
                     hostAutoEndTimeout = null;
                 }
                 showHostCountdown();
             } else if (state.status === "STARTED") {
+                hasActiveGameSession = true;
                 hideHostCountdown();
                 showPhase("hostGamePhase");
                 updateGamePhase(state, players);
@@ -982,6 +994,17 @@
                     hostTimerInterval = null;
                 }
                 hideHostCountdown();
+
+                // If host loaded the page fresh (or clicked the host link) and the room was already in ENDED state from a past match:
+                // Do NOT show the old leaderboard! Immediately return to the Host Dashboard and reset room to LOBBY!
+                if (!hasActiveGameSession) {
+                    console.log("Host opened link with ended game status; displaying Host Dashboard");
+                    sync.resetRoom(false);
+                    showPhase("hostLobbyPhase");
+                    renderLobbyPlayers(players);
+                    return;
+                }
+
                 showPhase("hostPodiumPhase");
                 renderPodiumAndLeaderboard(players);
             }
@@ -1145,6 +1168,7 @@
         }
 
         function hostStartGame() {
+            hasActiveGameSession = true;
             sound.init();
             const timeLimit = getHostTimeLimitSeconds();
             sync.startHostGame(timeLimit);
@@ -1393,7 +1417,15 @@
         }
 
         function hostPlayAnotherRound() {
+            hasActiveGameSession = false;
             sync.resetRoom(false);
+            showPhase("hostLobbyPhase");
+        }
+
+        function hostReturnToDashboard() {
+            hasActiveGameSession = false;
+            sync.resetRoom(false);
+            showPhase("hostLobbyPhase");
         }
 
         function hostClearLobby() {
@@ -1405,7 +1437,9 @@
         }
 
         function hostResetRound() {
+            hasActiveGameSession = false;
             sync.resetRoom(false);
+            showPhase("hostLobbyPhase");
         }
 
         function escapeHtml(s) {
