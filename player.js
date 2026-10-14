@@ -71,11 +71,6 @@ class PlayerController {
         };
         window.addEventListener("beforeunload", handlePlayerUnload);
         window.addEventListener("pagehide", handlePlayerUnload);
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-                handlePlayerUnload();
-            }
-        });
 
         const joinBtn = document.getElementById("btnJoinLobby");
         const nameInput = document.getElementById("inputNickname");

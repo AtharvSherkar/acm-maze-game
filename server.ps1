@@ -127,19 +127,6 @@ while ($true) {
                 }
             }
 
-            # Auto-prune players who closed browser or cleared recent tabs (no heartbeat in > 5000ms)
-            $stalePids = @()
-            foreach ($kv in $room.players.GetEnumerator()) {
-                $p = $kv.Value
-                if ($p.lastSeen -and (($nowMs - $p.lastSeen) -gt 5000)) {
-                    $stalePids += $kv.Key
-                }
-            }
-            foreach ($sPid in $stalePids) {
-                $room.players.Remove($sPid)
-                $room.lastUpdated = $nowMs
-            }
-
             # Auto-advance from COUNTDOWN to STARTED
             if ($room.status -eq "COUNTDOWN" -and $room.countdownStart -and ($nowMs -ge ($room.countdownStart + 3000))) {
                 $room.status = "STARTED"

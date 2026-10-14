@@ -923,21 +923,7 @@
 
         // Listen for Real-Time Updates
         sync.onUpdate((state) => {
-            const rawPlayers = state.players || {};
-            const now = Date.now();
-            const currentPlayers = {};
-
-            // Filter out any ghost players whose heartbeat is older than 5000ms (closed browser / cleared recent tabs)
-            for (const pid in rawPlayers) {
-                const p = rawPlayers[pid];
-                if (p && (!p.lastSeen || (now - p.lastSeen <= 5000))) {
-                    currentPlayers[pid] = p;
-                } else if (p && p.lastSeen && (now - p.lastSeen > 5000)) {
-                    // Tell server to purge the departed player
-                    sync.leaveRoom(pid, true);
-                }
-            }
-
+            const currentPlayers = state.players || {};
             const players = Object.values(currentPlayers);
             const countEl = document.getElementById("hostPlayerCount");
             if (countEl) countEl.innerText = players.length;

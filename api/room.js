@@ -118,21 +118,6 @@ module.exports = async function handler(req, res) {
         room.players[req.query.playerId].lastSeen = now;
     }
 
-    // Auto-prune stale players who closed browser or cleared recent tabs (> 5000ms silence)
-    let pruned = false;
-    if (room.players) {
-        for (const pid in room.players) {
-            const p = room.players[pid];
-            if (p && p.lastSeen && (now - p.lastSeen > 5000)) {
-                delete room.players[pid];
-                pruned = true;
-            }
-        }
-    }
-    if (pruned) {
-        await saveRoomState(roomId, room);
-    }
-
     // Auto-advance from COUNTDOWN to STARTED once the 3-second countdown duration finishes
     if (room.status === "COUNTDOWN" && room.countdownStart) {
         if (now >= room.countdownStart + 3000) {
